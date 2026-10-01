@@ -85,6 +85,13 @@ html[data-mantine-color-scheme='light'] .healthArc rect {
   flex-shrink: 0;
 }
 
+.chooserBar {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 4px var(--page-gutter) 16px;
+}
+
 .navTabs {
   align-self: stretch;
   height: 100%;
@@ -320,6 +327,25 @@ html[data-mantine-color-scheme='light'] .healthArc rect {
 .footerLink:focus-visible {
   outline: 2px solid var(--hc-focus);
   outline-offset: 2px;
+}
+
+.donateList {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.donateRow {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.donateAddress {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 13px;
+  letter-spacing: -0.02em;
 }
 
 html[data-animations='off'] *,

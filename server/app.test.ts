@@ -8,6 +8,7 @@ describe('api app', () => {
     const markets = (await response.json()) as Array<{ id: string; protocolId: string }>
     expect(markets.some((market) => market.id === 'hyperliquid-mainnet')).toBe(true)
     expect(markets.some((market) => market.protocolId === 'aave-v3')).toBe(true)
+    expect(markets.find((market) => market.id === 'aave-v3-optimism')).toMatchObject({ disabled: true })
   })
 
   it('keeps an /api path that was not rewritten', () => {

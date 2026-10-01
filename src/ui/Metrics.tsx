@@ -100,7 +100,13 @@ function Stat({
   badge?: string | null
 }) {
   return (
-    <Paper className={`${motion.enter} cardFace`} p="md" radius="md" withBorder style={{ minWidth: 0, animationDelay: delay }}>
+    <Paper
+      className={`${motion.enter} cardFace`}
+      p="md"
+      radius="md"
+      withBorder
+      style={{ minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', animationDelay: delay }}
+    >
       <Group justify="space-between" align="center" wrap="nowrap" gap="xs">
         <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: '0.04em' }}>
           {label}
@@ -134,7 +140,7 @@ function Stat({
           {secondary}
         </Text>
       ) : null}
-      <Text size="sm" c="dimmed" mt={8}>
+      <Text size="sm" c="dimmed" mt="auto" pt={8}>
         {note}
       </Text>
     </Paper>
@@ -171,7 +177,7 @@ function YieldPeriods({ yearly }: { yearly: ReturnType<typeof bn> }) {
       {periods.map(([label, amount]) => (
         <span key={label} style={{ minWidth: 0, lineHeight: 1.25 }}>
           <span style={{ display: 'block' }}>{commaBreaks(signedUsd(amount.toFixed()))}</span>
-          <span style={{ display: 'block', fontWeight: 500, color: 'var(--mantine-color-dimmed)' }}>{label}</span>
+          <span style={{ display: 'block', fontWeight: 500, color: 'var(--mantine-color-text)' }}>{label}</span>
         </span>
       ))}
     </span>

@@ -57,12 +57,16 @@ export function protocolIdFromPath(pathname: string): string | null {
   return matchProtocol(segments(pathname))?.protocolId ?? null
 }
 
+function openMarkets(markets: Market[]): Market[] {
+  return markets.filter((market) => !market.disabled)
+}
+
 export function resolveRoute(pathname: string, markets: Market[]): RouteMatch {
   const fallback = defaultRoute(markets)
   const matched = matchProtocol(segments(pathname))
   if (!matched) return fallback
 
-  const protocolMarkets = markets.filter((market) => market.protocolId === matched.protocolId)
+  const protocolMarkets = openMarkets(markets).filter((market) => market.protocolId === matched.protocolId)
   const [slug, viewSegment, ...extra] = matched.rest
   const market = slug
     ? protocolMarkets.find((entry) => marketSlug(entry.name) === slug)
@@ -79,7 +83,8 @@ export function resolveRoute(pathname: string, markets: Market[]): RouteMatch {
 }
 
 function defaultRoute(markets: Market[]): RouteMatch {
-  const market = markets.find((entry) => entry.protocolId === 'aave-v3') ?? markets[0]
+  const open = openMarkets(markets)
+  const market = open.find((entry) => entry.protocolId === 'aave-v3') ?? open[0]
   if (!market) {
     return { protocolId: 'aave-v3', marketId: '', view: 'calculator', canonical: '/aave/v3' }
   }

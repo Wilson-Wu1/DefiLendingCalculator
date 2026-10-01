@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  CopyButton,
   Divider,
   Group,
   Menu,
@@ -15,6 +16,7 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
   Transition,
   useMantineColorScheme,
 } from '@mantine/core'
@@ -149,7 +151,7 @@ export default function App() {
   }, [visible, edits])
 
   function onProtocol(nextProtocol: string) {
-    const nextMarket = markets.find((market) => market.protocolId === nextProtocol)
+    const nextMarket = markets.find((market) => market.protocolId === nextProtocol && !market.disabled)
     if (!nextMarket) return
     navigate(marketPath(nextProtocol, nextMarket.name, view))
     setEdits(emptyEdits())
@@ -157,7 +159,7 @@ export default function App() {
 
   function onMarket(nextId: string) {
     const market = markets.find((entry) => entry.id === nextId)
-    if (!market || market.id === marketId) return
+    if (!market || market.disabled || market.id === marketId) return
     navigate(marketPath(market.protocolId, market.name, view))
     setEdits(emptyEdits())
   }
@@ -372,7 +374,7 @@ export default function App() {
         </Text>
         </>
         ) : (
-          <Stack gap="md">
+          <Stack gap="md" w="100%">
             <Presence present={loading}>
               <Text className={motion.loading} c="dimmed" size="sm">
                 Loading market data…
@@ -400,6 +402,12 @@ export default function App() {
 
 const GITHUB_URL = 'https://github.com/Wilson-Wu1/DefiLendingCalculator'
 
+const DONATION_ADDRESSES = [
+  { chain: 'EVM', address: '0x4a1445b35c1AAa7ec0f495e06a4d40902bCb4D01' },
+  { chain: 'BTC', address: 'bc1q2lye7w0cgc3wsge97qjfalswd3tw8r6flzl3zu' },
+  { chain: 'Solana', address: '69paGVDawscPpRm9yTFzxJhcpxyysZSqsucDM1eX99j1' },
+]
+
 function Footer() {
   return (
     <Box component="footer" className="siteFooter">
@@ -412,7 +420,7 @@ function Footer() {
             <GitHubIcon />
             GitHub
           </a>
-          <Popover width={260} position="top-end" offset={8} withArrow shadow="md">
+          <Popover width={280} position="top-end" offset={8} withArrow shadow="md">
             <Popover.Target>
               <button type="button" className="footerLink">
                 <DonateIcon />
@@ -421,11 +429,35 @@ function Footer() {
             </Popover.Target>
             <Popover.Dropdown>
               <Text size="sm" fw={650}>
-                Donations coming soon
+                Donate
               </Text>
-              <Text size="sm" c="dimmed" mt={4}>
-                A donation option will be added here.
-              </Text>
+              <div className="donateList">
+                {DONATION_ADDRESSES.map((entry) => (
+                  <div key={entry.chain} className="donateRow">
+                    <Text size="xs" c="dimmed">
+                      {entry.chain}
+                    </Text>
+                    <Text className="donateAddress" size="sm" title={entry.address}>
+                      {shortenAddress(entry.address)}
+                    </Text>
+                    <CopyButton value={entry.address} timeout={1600}>
+                      {({ copied, copy }) => (
+                        <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="top" openDelay={300}>
+                          <ActionIcon
+                            variant="subtle"
+                            color={copied ? 'accent' : 'gray'}
+                            size="sm"
+                            aria-label={copied ? `Copied ${entry.chain} address` : `Copy ${entry.chain} address`}
+                            onClick={copy}
+                          >
+                            {copied ? <CheckIcon /> : <CopyIcon />}
+                          </ActionIcon>
+                        </Tooltip>
+                      )}
+                    </CopyButton>
+                  </div>
+                ))}
+              </div>
             </Popover.Dropdown>
           </Popover>
         </nav>
@@ -601,6 +633,34 @@ function DonateIcon() {
         d="M8 13.15 2.85 8.15a2.95 2.95 0 0 1 4.17-4.17L8 4.96l.98-.98a2.95 2.95 0 0 1 4.17 4.17L8 13.15Z"
         stroke="currentColor"
         strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CopyIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <rect x="4.4" y="4.4" width="7.2" height="7.2" rx="1.4" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M9.2 4.2V3.1A1.1 1.1 0 0 0 8.1 2H3.1A1.1 1.1 0 0 0 2 3.1v5A1.1 1.1 0 0 0 3.1 9.2h1.1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path
+        d="M3 7.2 5.6 9.8 11 4.2"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
