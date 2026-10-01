@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defi Lending Calculator</title>
+    <script>
+      try {
+        var stored = localStorage.getItem('mantine-color-scheme-value')
+        var scheme = stored === 'light' || stored === 'dark' ? stored : 'dark'
+        document.documentElement.setAttribute('data-mantine-color-scheme', scheme)
+      } catch (e) {}
+    </script>
+    <style>
+      html { color-scheme: dark; }
+      html, body, #root { background: #141619; color: #f4f6f7; }
+      html[data-mantine-color-scheme='light'] { color-scheme: light; }
+      html[data-mantine-color-scheme='light'],
+      html[data-mantine-color-scheme='light'] body,
+      html[data-mantine-color-scheme='light'] #root {
+        background: #eef1f2;
+        color: #141619;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

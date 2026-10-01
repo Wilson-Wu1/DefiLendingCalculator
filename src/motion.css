@@ -1,0 +1,55 @@
+.mantine-Select-input[data-expanded] ~ .mantine-Input-section[data-position='right'] svg {
+  transform: rotate(180deg);
+}
+
+html[data-animations='on'] .mantine-Select-input ~ .mantine-Input-section[data-position='right'] svg {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animationsToggle {
+  cursor: pointer;
+  border-radius: var(--mantine-radius-md);
+  padding: 6px 8px;
+  margin-block: -6px;
+  margin-inline: -8px;
+  transition: background-color 160ms ease;
+}
+
+.animationsToggle,
+.animationsToggle * {
+  cursor: pointer;
+}
+
+.animationsToggle:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.animationsToggle .mantine-Switch-label {
+  transition: color 160ms ease;
+}
+
+.animationsToggle:hover .mantine-Switch-label {
+  color: var(--hc-emphasis);
+}
+
+.animationsToggle .mantine-Switch-track {
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.animationsToggle:has(input:checked) .mantine-Switch-track {
+  --switch-bg: var(--hc-switch);
+}
+
+.animationsToggle:hover .mantine-Switch-track {
+  box-shadow: 0 0 0 1px var(--hc-focus-ring);
+}
+
+html[data-animations='off'] *,
+html[data-animations='off'] *::before,
+html[data-animations='off'] *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

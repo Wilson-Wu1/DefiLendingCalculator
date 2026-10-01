@@ -1,0 +1,92 @@
+.presence {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.presence[data-open] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.presenceInner {
+  min-height: 0;
+  overflow: hidden;
+  transform: translateY(-8px);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.presence[data-open] .presenceInner {
+  transform: translateY(0);
+}
+
+.presence[data-settled] .presenceInner {
+  overflow: visible;
+}
+
+:global(html[data-animations='off']) .presence[data-open] {
+  grid-template-rows: 1fr !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+:global(html[data-animations='off']) .presence[data-open] .presenceInner {
+  overflow: visible !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.spacer {
+  height: var(--presence-space);
+}
+
+.enter {
+  animation: rise 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tone {
+  transition: color 240ms ease;
+}
+
+.loading {
+  animation: pulse 1.15s ease-in-out infinite;
+}
+
+.badgeIn {
+  animation: pop 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
