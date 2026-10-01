@@ -1,6 +1,6 @@
 import { Table, Text } from '@mantine/core'
 import { useMemo } from 'react'
-import { formatAmount, formatRate, formatUsd } from '../domain/numbers.ts'
+import { formatCompactNumber, formatRate } from '../domain/numbers.ts'
 import type { Position } from '../domain/types.ts'
 import { tokenIconUrl } from './icons.ts'
 import styles from './Markets.module.css'
@@ -31,7 +31,7 @@ export function Markets({
   }
 
   return (
-    <div className={`${styles.frame} ${motion.enter}`}>
+    <div className={`${styles.frame} cardFace ${motion.enter}`}>
         <Table className={styles.table} horizontalSpacing="md" verticalSpacing="sm" highlightOnHover aria-label="Market assets">
           <Table.Thead>
             <Table.Tr>
@@ -87,9 +87,9 @@ function Total({
 }) {
   return (
     <div className={styles.stack}>
-      <Text>{amount === null ? '—' : `${formatAmount(amount)} ${symbol}`}</Text>
+      <Text>{amount === null ? '—' : `${formatCompactNumber(amount, 2)} ${symbol}`}</Text>
       <Text size="sm" c="dimmed">
-        {usd === null ? '—' : `$${formatUsd(usd)}`}
+        {usd === null ? '—' : `$${formatCompactNumber(usd, 2)}`}
       </Text>
     </div>
   )

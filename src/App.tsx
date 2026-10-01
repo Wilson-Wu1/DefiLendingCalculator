@@ -1,12 +1,14 @@
 import {
+  ActionIcon,
   Affix,
   Alert,
   Box,
   Button,
   Divider,
   Group,
+  Menu,
   Notification,
-  Select,
+  Popover,
   Stack,
   Switch,
   Tabs,
@@ -23,12 +25,12 @@ import { emptyEdits, type Edits, type Market, type Position } from './domain/typ
 import { hyperliquidAccountLabel } from './ui/accountMode.ts'
 import { useAnimations } from './ui/animations.tsx'
 import { Board } from './ui/Board.tsx'
-import { chainIconUrl, protocolIconUrl } from './ui/icons.ts'
-import { Mark } from './ui/Mark.tsx'
 import { Markets } from './ui/Markets.tsx'
 import { healthColor, Metrics } from './ui/Metrics.tsx'
+import caption from './ui/caption.module.css'
 import motion from './ui/motion.module.css'
 import { Presence } from './ui/Presence.tsx'
+import { ProtocolMarket } from './ui/ProtocolMarket.tsx'
 import { marketPath, protocolIdFromPath, resolveRoute } from './ui/route.ts'
 
 const protocols = protocolChoices()
@@ -41,7 +43,12 @@ type FetchNotice = {
 
 export default function App() {
   const { enabled: animationsEnabled, setEnabled: setAnimationsEnabled } = useAnimations()
-  const { colorScheme, setColorScheme } = useMantineColorScheme()
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+  const lightMode = colorScheme === 'light'
+
+  useEffect(() => {
+    document.getElementById('favicon')?.setAttribute('href', lightMode ? '/favicon-light.svg' : '/favicon.svg')
+  }, [lightMode])
   const [markets, setMarkets] = useState<Market[]>([])
   const [pathname, navigate] = usePathname()
   const [position, setPosition] = useState<Position | null>(null)
@@ -141,18 +148,17 @@ export default function App() {
     return adapterFor(visible.protocolId).simulate(visible, edits)
   }, [visible, edits])
 
-  const protocolMarkets = markets.filter((market) => market.protocolId === protocolId)
-  const menuTransition = {
-    transition: 'pop-top-left' as const,
-    duration: animationsEnabled ? 180 : 0,
-    exitDuration: animationsEnabled ? 120 : 0,
-    timingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  }
-
   function onProtocol(nextProtocol: string) {
     const nextMarket = markets.find((market) => market.protocolId === nextProtocol)
     if (!nextMarket) return
     navigate(marketPath(nextProtocol, nextMarket.name, view))
+    setEdits(emptyEdits())
+  }
+
+  function onMarket(nextId: string) {
+    const market = markets.find((entry) => entry.id === nextId)
+    if (!market || market.id === marketId) return
+    navigate(marketPath(market.protocolId, market.name, view))
     setEdits(emptyEdits())
   }
 
@@ -213,117 +219,80 @@ export default function App() {
         borderBottom: '1px solid var(--mantine-color-default-border)',
       }}
     >
-      <Group mih={56} py={8} w="100%" maw={1440} mx="auto" px="md" align="center" justify="space-between" wrap="wrap" gap="md">
-        <Title order={1} fz={18} fw={700} lh={1} style={{ minWidth: 0 }}>
-          Defi Lending Calculator
-        </Title>
-        <Group gap="md" wrap="nowrap" style={{ flexShrink: 0 }}>
-          <Switch
-            className="animationsToggle"
-            checked={colorScheme === 'light'}
-            onChange={(event) => setColorScheme(event.currentTarget.checked ? 'light' : 'dark')}
-            label="Light mode"
-            size="sm"
-            color="accent"
-          />
-          <Divider orientation="vertical" color="var(--mantine-color-default-border)" />
-          <Switch
-            className="animationsToggle"
-            checked={animationsEnabled}
-            onChange={(event) => setAnimationsEnabled(event.currentTarget.checked)}
-            label="Animations"
-            size="sm"
-            color="accent"
-          />
-        </Group>
-      </Group>
-    </Box>
-    <Box
-      maw={1440}
-      mx="auto"
-      px="md"
-      pt="lg"
-      pb="xl"
-      style={{ fontVariantNumeric: 'tabular-nums' }}
-    >
-      <Stack gap="lg">
-        <Group className={motion.enter} style={{ animationDelay: '40ms' }} align="flex-end" wrap="wrap">
-            <Select
-              label="Protocol"
-              size="lg"
-              comboboxProps={{ transitionProps: menuTransition }}
-              data={protocols.map((protocol) => ({ value: protocol.id, label: protocol.label }))}
-              value={protocolId}
-              allowDeselect={false}
-              styles={{
-                label: {
-                  fontSize: 'var(--mantine-font-size-lg)',
-                  fontWeight: 700,
-                  marginBottom: 'var(--mantine-spacing-sm)',
-                },
-              }}
-              leftSection={<Mark src={protocolIconUrl(protocolId)} label={protocolId} size={18} />}
-              leftSectionWidth={42}
-              renderOption={({ option }) => (
-                <Group gap="xs" wrap="nowrap">
-                  <Mark src={protocolIconUrl(option.value)} label={option.label} size={18} />
-                  <span>{option.label}</span>
-                </Group>
-              )}
-              onChange={(value) => {
-                if (value) onProtocol(value)
-              }}
-              w={240}
+      <Box className="topNav">
+        <Box className="topNavBrand">
+          <svg className="healthArc" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+            <rect width="32" height="32" rx="8" fill="#1c1f23" />
+            <path
+              d="M9.2 21.2a8.1 8.1 0 1 1 13.6 0"
+              fill="none"
+              stroke="#50d2c1"
+              strokeWidth="3.2"
+              strokeLinecap="round"
             />
-            <Select
-              label="Market"
-              size="lg"
-              maxDropdownHeight={640}
-              comboboxProps={{ transitionProps: menuTransition }}
-              data={protocolMarkets.map((market) => ({ value: market.id, label: market.name }))}
-              value={marketId || null}
-              allowDeselect={false}
-              styles={{
-                label: {
-                  fontSize: 'var(--mantine-font-size-lg)',
-                  fontWeight: 700,
-                  marginBottom: 'var(--mantine-spacing-sm)',
-                },
-              }}
-              leftSection={
-                <Mark
-                  src={chainIconUrl(protocolMarkets.find((market) => market.id === marketId)?.chainId ?? null)}
-                  label={protocolMarkets.find((market) => market.id === marketId)?.name ?? 'Market'}
-                  size={18}
-                />
-              }
-              leftSectionWidth={42}
-              renderOption={({ option }) => {
-                const market = protocolMarkets.find((entry) => entry.id === option.value)
-                return (
-                  <Group gap="xs" wrap="nowrap">
-                    <Mark src={chainIconUrl(market?.chainId ?? null)} label={option.label} size={18} />
-                    <span>{option.label}</span>
-                  </Group>
-                )
-              }}
-              onChange={(value) => {
-                if (!value) return
-                const market = markets.find((entry) => entry.id === value)
-                if (!market) return
-                navigate(marketPath(market.protocolId, market.name, view))
-                setEdits(emptyEdits())
-              }}
-              w={280}
-            />
-          </Group>
-
-        <Tabs className={motion.enter} style={{ animationDelay: '55ms' }} value={view} onChange={onView} color="accent">
+          </svg>
+          <Title className="topNavTitle" order={1} fz={22} fw={600} lh={1}>
+            Defi Lending
+          </Title>
+        </Box>
+        <Tabs className="navTabs" value={view} onChange={onView} color="accent">
           <Tabs.List>
             <Tabs.Tab value="calculator">Calculator</Tabs.Tab>
             <Tabs.Tab value="markets">Markets</Tabs.Tab>
           </Tabs.List>
         </Tabs>
+        <Group className="topNavTools" gap="md" wrap="nowrap" align="center">
+          <ThemeToggle light={lightMode} onToggle={toggleColorScheme} />
+          <Divider orientation="vertical" color="var(--mantine-color-default-border)" />
+          <AnimationsToggle enabled={animationsEnabled} onChange={setAnimationsEnabled} />
+        </Group>
+        <div className="topNavSettings">
+          <Menu
+            position="bottom-end"
+            width={220}
+            offset={8}
+            transitionProps={{
+              transition: 'pop-top-right',
+              duration: animationsEnabled ? 180 : 0,
+              exitDuration: animationsEnabled ? 120 : 0,
+              timingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            <Menu.Target>
+              <ActionIcon className="iconToggle" variant="subtle" color="gray" aria-label="Settings">
+                <SettingsIcon />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown className="settingsMenu">
+              <div className="settingsRow">
+                <span className="settingsLabel">Light mode</span>
+                <ThemeToggle light={lightMode} onToggle={toggleColorScheme} />
+              </div>
+              <AnimationsToggle enabled={animationsEnabled} labelPosition="left" onChange={setAnimationsEnabled} />
+            </Menu.Dropdown>
+          </Menu>
+        </div>
+      </Box>
+    </Box>
+    <Box
+      component="main"
+      maw={1440}
+      mx="auto"
+      pt={48}
+      pb="xl"
+      style={{ flex: '1 0 auto', fontVariantNumeric: 'tabular-nums', paddingInline: 'var(--page-gutter)' }}
+    >
+      <Stack gap="lg">
+        <div className={motion.enter} style={{ animationDelay: '40ms' }}>
+          <ProtocolMarket
+            markets={markets}
+            protocolId={protocolId}
+            marketId={marketId}
+            animations={animationsEnabled}
+            onProtocol={onProtocol}
+            onMarket={onMarket}
+          />
+        </div>
 
         {view === 'calculator' ? (
         <>
@@ -336,13 +305,8 @@ export default function App() {
               value={walletInput}
               spellCheck={false}
               onChange={(event) => setWalletInput(event.currentTarget.value)}
-              styles={{
-                label: {
-                  fontSize: 'var(--mantine-font-size-lg)',
-                  fontWeight: 700,
-                  marginBottom: 'var(--mantine-spacing-sm)',
-                },
-              }}
+              classNames={{ label: caption.caption }}
+              styles={{ input: { backgroundColor: 'var(--hc-segment)', borderColor: 'transparent' } }}
               style={{ flex: '1 1 280px' }}
             />
             <Button type="submit" loading={loading} leftSection={<SearchIcon />}>
@@ -353,6 +317,7 @@ export default function App() {
               variant="default"
               onClick={resetScenario}
               disabled={!visible && !loadedWallet && walletInput.trim() === ''}
+              styles={{ root: { border: 0 } }}
             >
               Reset scenario
             </Button>
@@ -428,7 +393,44 @@ export default function App() {
       </Stack>
       <Toast notice={notice} animations={animationsEnabled} onClose={() => setNotice(null)} />
     </Box>
+    <Footer />
     </>
+  )
+}
+
+const GITHUB_URL = 'https://github.com/Wilson-Wu1/DefiLendingCalculator'
+
+function Footer() {
+  return (
+    <Box component="footer" className="siteFooter">
+      <div className="siteFooterInner">
+        <Text c="dimmed" size="sm">
+          Defi Lending Calculator
+        </Text>
+        <nav className="footerLinks" aria-label="Social links">
+          <a className="footerLink" href={GITHUB_URL} target="_blank" rel="noreferrer">
+            <GitHubIcon />
+            GitHub
+          </a>
+          <Popover width={260} position="top-end" offset={8} withArrow shadow="md">
+            <Popover.Target>
+              <button type="button" className="footerLink">
+                <DonateIcon />
+                Donate
+              </button>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Text size="sm" fw={650}>
+                Donations coming soon
+              </Text>
+              <Text size="sm" c="dimmed" mt={4}>
+                A donation option will be added here.
+              </Text>
+            </Popover.Dropdown>
+          </Popover>
+        </nav>
+      </div>
+    </Box>
   )
 }
 
@@ -494,11 +496,113 @@ function shortenAddress(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
 }
 
+function ThemeToggle({ light, onToggle }: { light: boolean; onToggle: () => void }) {
+  return (
+    <ActionIcon
+      className="iconToggle"
+      variant="subtle"
+      color="gray"
+      aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'}
+      aria-pressed={light}
+      onClick={onToggle}
+    >
+      <span className="themeIcons" data-scheme={light ? 'light' : 'dark'}>
+        <SunIcon />
+        <MoonIcon />
+      </span>
+    </ActionIcon>
+  )
+}
+
+function AnimationsToggle({
+  enabled,
+  labelPosition = 'right',
+  onChange,
+}: {
+  enabled: boolean
+  labelPosition?: 'left' | 'right'
+  onChange: (enabled: boolean) => void
+}) {
+  return (
+    <Switch
+      className="animationsToggle"
+      checked={enabled}
+      onChange={(event) => onChange(event.currentTarget.checked)}
+      label="Animations"
+      labelPosition={labelPosition}
+      size="sm"
+      color="accent"
+    />
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg className="themeSun" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="3.1" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M9 1.7v1.7M9 14.6v1.7M1.7 9h1.7M14.6 9h1.7M3.75 3.75l1.2 1.2M13.05 13.05l1.2 1.2M14.25 3.75l-1.2 1.2M4.95 13.05l-1.2 1.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg className="themeMoon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path
+        d="M14.8 11.35A5.9 5.9 0 0 1 6.65 3.2 5.9 5.9 0 1 0 14.8 11.35Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M10.2 3.2h3.6l.45 2.15a6.8 6.8 0 0 1 1.85 1.05l2.05-.95 1.8 3.1-1.6 1.55a6.9 6.9 0 0 1 0 2.2l1.6 1.55-1.8 3.1-2.05-.95a6.8 6.8 0 0 1-1.85 1.05l-.45 2.15h-3.6l-.45-2.15a6.8 6.8 0 0 1-1.85-1.05l-2.05.95-1.8-3.1 1.6-1.55a6.9 6.9 0 0 1 0-2.2L3.9 8.55l1.8-3.1 2.05.95a6.8 6.8 0 0 1 1.85-1.05l.6-2.15Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  )
+}
+
 function SearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <circle cx="7.5" cy="7.5" r="4.25" stroke="currentColor" strokeWidth="1.8" />
       <path d="M10.6 10.6 15 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function GitHubIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.7 7.7 0 0 1 8 5.06c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+    </svg>
+  )
+}
+
+function DonateIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M8 13.15 2.85 8.15a2.95 2.95 0 0 1 4.17-4.17L8 4.96l.98-.98a2.95 2.95 0 0 1 4.17 4.17L8 13.15Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }

@@ -157,37 +157,54 @@
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
+  padding-right: 28px;
 }
 
 .cardIdentity {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   flex: 1 1 auto;
   min-width: 0;
 }
 
+.cardMark {
+  display: flex;
+  flex: 0 0 auto;
+  margin-top: 0.156em;
+}
+
 .cardMeta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
   min-width: 0;
 }
 
 .cardSymbol {
+  margin: 0;
+  line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cardApy {
+  line-height: 1.2;
+  margin-top: 2px;
 }
 
 .cardBadges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-top: 6px;
 }
 
 .remove {
-  flex: 0 0 auto;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
 }
 
 .cardTools {
@@ -217,7 +234,11 @@
 }
 
 .columnHead {
-  margin-bottom: 20px;
+  margin-bottom: 6px;
+}
+
+.columnHead .columnTitle {
+  margin: 0;
 }
 
 .columnTotal,
@@ -265,6 +286,7 @@
 }
 
 .cardPaper {
+  position: relative;
   min-width: 0;
 }
 

@@ -17,6 +17,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { bn, formatRate, formatUsd } from '../domain/numbers.ts'
 import type { AssetState, Edits, Position } from '../domain/types.ts'
 import styles from './Board.module.css'
+import caption from './caption.module.css'
 import motion from './motion.module.css'
 import { commaBreaks } from './commaBreaks.tsx'
 import { Presence } from './Presence.tsx'
@@ -207,9 +208,7 @@ function Column({
       style={{ animationDelay: enterDelay }}
     >
       <div className={styles.columnHead}>
-        <Text component="h2" fz="lg" fw={700} m={0}>
-          {title}
-        </Text>
+        <h2 className={`${caption.caption} ${styles.columnTitle}`}>{title}</h2>
         <Text size="sm" c="dimmed" className={styles.columnTotal}>
           Total ${commaBreaks(formatUsd(total.toFixed()))}
         </Text>
@@ -224,7 +223,7 @@ function Column({
             space="20px"
             onExited={() => finishLeave(row.assetId)}
           >
-            <Paper withBorder radius="md" p="md" className={styles.cardPaper}>
+            <Paper withBorder radius="md" p="md" className={`${styles.cardPaper} cardFace cardFaceQuiet`}>
               <AssetRow
                 row={row}
                 side={side}
@@ -247,6 +246,7 @@ function Column({
         disabled={disabled}
         onChange={(event) => setQuery(event.currentTarget.value)}
         mb="sm"
+        styles={{ input: { backgroundColor: 'var(--hc-segment)', borderColor: 'transparent' } }}
       />
       {available.length > 0 ? (
         <Stack gap={8}>
@@ -430,19 +430,30 @@ function AssetRow({
 
   return (
     <Box className={styles.card}>
+      <ActionIcon
+        className={styles.remove}
+        variant="subtle"
+        color="gray"
+        aria-label={`Remove ${row.symbol}`}
+        onClick={onRemove}
+      >
+        ×
+      </ActionIcon>
       <div className={styles.cardHead}>
         <div className={styles.cardIdentity}>
-          <Mark
-            src={tokenIconUrl({ protocolId, chainId, assetId: row.assetId, symbol: row.symbol })}
-            label={row.symbol}
-            size={28}
-          />
+          <span className={styles.cardMark}>
+            <Mark
+              src={tokenIconUrl({ protocolId, chainId, assetId: row.assetId, symbol: row.symbol })}
+              label={row.symbol}
+              size={28}
+            />
+          </span>
           <div className={styles.cardMeta}>
             <Text fw={700} className={styles.cardSymbol}>
               {row.symbol}
             </Text>
             {apy !== null ? (
-              <Text size="sm" c="dimmed">
+              <Text size="sm" c="dimmed" className={styles.cardApy}>
                 {formatRate(apy)} APY
               </Text>
             ) : null}
@@ -456,15 +467,6 @@ function AssetRow({
             </Text>
             <Text className={styles.usd}>${commaBreaks(formatUsd(usd))}</Text>
           </div>
-          <ActionIcon
-            className={styles.remove}
-            variant="subtle"
-            color="gray"
-            aria-label={`Remove ${row.symbol}`}
-            onClick={onRemove}
-          >
-            ×
-          </ActionIcon>
         </div>
       </div>
       <div className={styles.fields}>
