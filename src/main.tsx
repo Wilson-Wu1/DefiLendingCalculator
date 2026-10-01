@@ -1,6 +1,7 @@
 import { MantineProvider } from '@mantine/core'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource-variable/space-grotesk'
 import '@fontsource-variable/manrope'
 import '@mantine/core/styles.css'
 import App from './App.tsx'

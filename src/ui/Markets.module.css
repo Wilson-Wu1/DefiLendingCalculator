@@ -1,9 +1,6 @@
 .frame {
   overflow: auto;
   max-height: calc(100dvh - 240px);
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-default);
 }
 
 .table {
@@ -14,7 +11,7 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--mantine-color-default);
+  background: var(--hc-card-top);
   color: var(--mantine-color-dimmed);
   font-size: var(--mantine-font-size-sm);
   font-weight: 700;

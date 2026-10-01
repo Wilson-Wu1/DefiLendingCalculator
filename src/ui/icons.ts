@@ -39,6 +39,16 @@ export function chainIconUrl(chainId: number | null): string | null {
   return `https://icons.llamao.fi/icons/chains/rsz_${slug}.jpg`
 }
 
+const MARKET_ICON: Record<string, string> = {
+  'aave-v3-ethereum-horizon': '/horizon.png',
+  'aave-v3-ethereum-prime': '/prime.png',
+  'aave-v3-ethereum-etherfi': '/etherfi.png',
+}
+
+export function marketIconUrl(marketId: string, chainId: number | null): string | null {
+  return MARKET_ICON[marketId] ?? chainIconUrl(chainId)
+}
+
 const SYMBOL_ICON: Record<string, string> = {
   link: '/link.png',
   syrupusdt: '/syrupusdt.png',
