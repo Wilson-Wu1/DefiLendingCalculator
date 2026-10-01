@@ -144,11 +144,24 @@ function MarketMenu({
                   {section.markets.map((market) => (
                     <Menu.Item
                       key={market.id}
-                      className={market.id === selected?.id ? `${styles.cell} ${styles.cellSelected}` : styles.cell}
+                      className={
+                        market.disabled
+                          ? `${styles.cell} ${styles.cellDisabled}`
+                          : market.id === selected?.id
+                            ? `${styles.cell} ${styles.cellSelected}`
+                            : styles.cell
+                      }
+                      disabled={market.disabled}
                       leftSection={<Mark src={marketIconUrl(market.id, market.chainId)} label={market.name} size={22} />}
-                      onClick={() => onMarket(market.id)}
+                      onClick={() => {
+                        if (market.disabled) return
+                        onMarket(market.id)
+                      }}
                     >
-                      {menuLabel(market.name)}
+                      <span className={styles.cellName}>
+                        {menuLabel(market.name)}
+                        {market.disabled ? <span className={styles.cellStatus}>Disabled</span> : null}
+                      </span>
                     </Menu.Item>
                   ))}
                 </div>

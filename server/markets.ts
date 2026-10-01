@@ -26,6 +26,7 @@ export type PublicMarket = {
   protocolId: string
   name: string
   chainId: number | null
+  disabled?: boolean
 }
 
 export type AaveMarketConfig = PublicMarket & {
@@ -113,9 +114,16 @@ function toAaveMarket(entry: { id: string; name: string; book: BookMarket }): Aa
   }
 }
 
-export const aaveMarkets: AaveMarketConfig[] = aaveBooks
+/** Listed in the picker as disabled, and excluded from live market data. */
+const disabledMarketIds = new Set(['aave-v3-optimism'])
+
+const configuredAaveMarkets: AaveMarketConfig[] = aaveBooks
   .map(toAaveMarket)
   .filter((market): market is AaveMarketConfig => market !== null)
+
+export const aaveMarkets: AaveMarketConfig[] = configuredAaveMarkets.filter(
+  (market) => !disabledMarketIds.has(market.id),
+)
 
 export const hyperliquidMarket: PublicMarket = {
   id: 'hyperliquid-mainnet',
@@ -126,7 +134,13 @@ export const hyperliquidMarket: PublicMarket = {
 
 export function publicMarkets(): PublicMarket[] {
   return [
-    ...aaveMarkets.map(({ id, protocolId, name, chainId }) => ({ id, protocolId, name, chainId })),
+    ...configuredAaveMarkets.map(({ id, protocolId, name, chainId }) => ({
+      id,
+      protocolId,
+      name,
+      chainId,
+      ...(disabledMarketIds.has(id) ? { disabled: true } : {}),
+    })),
     hyperliquidMarket,
   ]
 }

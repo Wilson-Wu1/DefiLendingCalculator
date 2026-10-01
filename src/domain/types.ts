@@ -3,6 +3,8 @@ export type Market = {
   protocolId: string
   name: string
   chainId: number | null
+  /** Shown in the market picker, but not selectable. */
+  disabled?: boolean
 }
 
 export type AssetState = {
