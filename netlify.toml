@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  # These packages use Node require() for built-ins such as crypto. Leave them
+  # unbundled so that require still works inside the function.
+  external_node_modules = ["ethers", "@aave/contract-helpers", "@aave/math-utils", "@bgd-labs/aave-address-book"]
+
+# /api must be listed before the single-page fallback.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

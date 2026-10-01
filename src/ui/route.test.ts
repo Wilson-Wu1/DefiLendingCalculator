@@ -16,6 +16,9 @@ describe('market paths', () => {
     expect(marketPath('aave-v3', 'Ethereum')).toBe('/aave/v3/ethereum')
     expect(marketPath('aave-v3', 'Ethereum Prime')).toBe('/aave/v3/ethereum-prime')
     expect(marketPath('aave-v3', 'zkSync')).toBe('/aave/v3/zksync')
+    expect(marketPath('aave-v3', 'Ethereum', 'markets')).toBe('/aave/v3/ethereum/markets')
+    expect(marketPath('hyperliquid', 'HyperCore', 'markets')).toBe('/hyperliquid/hypercore/markets')
+    expect(marketPath('aave-v3', 'Ethereum', 'calculator')).toBe('/aave/v3/ethereum')
   })
 
   it('reads a protocol and market back from the path', () => {
@@ -27,7 +30,20 @@ describe('market paths', () => {
     expect(resolveRoute('/aave/v3/arbitrum', markets)).toMatchObject({
       protocolId: 'aave-v3',
       marketId: 'aave-v3-arbitrum',
+      view: 'calculator',
       canonical: '/aave/v3/arbitrum',
+    })
+    expect(resolveRoute('/aave/v3/ethereum/markets', markets)).toMatchObject({
+      protocolId: 'aave-v3',
+      marketId: 'aave-v3-ethereum',
+      view: 'markets',
+      canonical: '/aave/v3/ethereum/markets',
+    })
+    expect(resolveRoute('/hyperliquid/hypercore/markets', markets)).toMatchObject({
+      protocolId: 'hyperliquid',
+      marketId: 'hyperliquid-mainnet',
+      view: 'markets',
+      canonical: '/hyperliquid/hypercore/markets',
     })
   })
 
@@ -43,5 +59,16 @@ describe('market paths', () => {
   it('falls back to Aave Ethereum for an unknown path', () => {
     expect(resolveRoute('/', markets).canonical).toBe('/aave/v3/ethereum')
     expect(resolveRoute('/aave/v3/missing', markets).canonical).toBe('/aave/v3/ethereum')
+  })
+
+  it('drops an unknown view back to the calculator for that market', () => {
+    expect(resolveRoute('/aave/v3/arbitrum/nope', markets)).toMatchObject({
+      marketId: 'aave-v3-arbitrum',
+      view: 'calculator',
+      canonical: '/aave/v3/arbitrum',
+    })
+    expect(resolveRoute('/hyperliquid/hypercore/markets/extra', markets).canonical).toBe(
+      '/hyperliquid/hypercore',
+    )
   })
 })

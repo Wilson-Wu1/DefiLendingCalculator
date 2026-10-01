@@ -1,0 +1,41 @@
+.frame {
+  overflow: auto;
+  max-height: calc(100dvh - 240px);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-default);
+}
+
+.table {
+  min-width: 720px;
+}
+
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--mantine-color-default);
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.numeric {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.asset {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 140px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}

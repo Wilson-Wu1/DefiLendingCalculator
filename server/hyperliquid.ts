@@ -10,6 +10,8 @@ const INFO_URL = 'https://api.hyperliquid.xyz/info'
 type ReserveState = {
   oraclePx: string
   ltv: string
+  totalSupplied: string
+  totalBorrowed: string
   supplyYearlyRate: string
   borrowYearlyRate: string
 }
@@ -56,6 +58,8 @@ async function loadReserves(): Promise<HyperliquidReserve[]> {
     symbol: names.get(tokenIndex) ?? `Token ${tokenIndex}`,
     oraclePx: state.oraclePx,
     ltv: state.ltv,
+    totalSupplied: String(state.totalSupplied),
+    totalBorrowed: String(state.totalBorrowed),
     supplyYearlyRate: state.supplyYearlyRate,
     borrowYearlyRate: state.borrowYearlyRate,
   }))

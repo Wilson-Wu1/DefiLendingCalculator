@@ -9,6 +9,7 @@ import {
   Select,
   Stack,
   Switch,
+  Tabs,
   Text,
   TextInput,
   Title,
@@ -24,6 +25,7 @@ import { useAnimations } from './ui/animations.tsx'
 import { Board } from './ui/Board.tsx'
 import { chainIconUrl, protocolIconUrl } from './ui/icons.ts'
 import { Mark } from './ui/Mark.tsx'
+import { Markets } from './ui/Markets.tsx'
 import { healthColor, Metrics } from './ui/Metrics.tsx'
 import motion from './ui/motion.module.css'
 import { Presence } from './ui/Presence.tsx'
@@ -74,6 +76,7 @@ export default function App() {
   )
   const protocolId = route?.protocolId ?? protocolIdFromPath(pathname) ?? protocols[0]?.id ?? 'aave-v3'
   const marketId = route?.marketId ?? ''
+  const view = route?.view ?? 'calculator'
 
   useEffect(() => {
     if (!route || pathname === route.canonical) return
@@ -149,8 +152,15 @@ export default function App() {
   function onProtocol(nextProtocol: string) {
     const nextMarket = markets.find((market) => market.protocolId === nextProtocol)
     if (!nextMarket) return
-    navigate(marketPath(nextProtocol, nextMarket.name))
+    navigate(marketPath(nextProtocol, nextMarket.name, view))
     setEdits(emptyEdits())
+  }
+
+  function onView(next: string | null) {
+    if (next !== 'calculator' && next !== 'markets') return
+    const market = markets.find((entry) => entry.id === marketId)
+    if (!market) return
+    navigate(marketPath(market.protocolId, market.name, next))
   }
 
   function onSearch(event: FormEvent) {
@@ -301,13 +311,22 @@ export default function App() {
                 if (!value) return
                 const market = markets.find((entry) => entry.id === value)
                 if (!market) return
-                navigate(marketPath(market.protocolId, market.name))
+                navigate(marketPath(market.protocolId, market.name, view))
                 setEdits(emptyEdits())
               }}
               w={280}
             />
           </Group>
 
+        <Tabs className={motion.enter} style={{ animationDelay: '55ms' }} value={view} onChange={onView} color="accent">
+          <Tabs.List>
+            <Tabs.Tab value="calculator">Calculator</Tabs.Tab>
+            <Tabs.Tab value="markets">Markets</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+
+        {view === 'calculator' ? (
+        <>
         <form className={motion.enter} style={{ animationDelay: '70ms' }} onSubmit={onSearch}>
           <Group align="flex-end" wrap="wrap">
             <TextInput
@@ -386,6 +405,26 @@ export default function App() {
         <Text className={motion.enter} style={{ animationDelay: '300ms' }} c="dimmed" size="sm">
           Simulation only. Changing a price or a balance does not send a transaction.
         </Text>
+        </>
+        ) : (
+          <Stack gap="md">
+            <Presence present={loading}>
+              <Text className={motion.loading} c="dimmed" size="sm">
+                Loading market data…
+              </Text>
+            </Presence>
+            <Presence present={error !== null}>
+              <Alert color="red" variant="light" role="alert">
+                {error}
+              </Alert>
+            </Presence>
+            <Markets
+              position={visible}
+              protocolId={protocolId}
+              chainId={markets.find((market) => market.id === marketId)?.chainId ?? null}
+            />
+          </Stack>
+        )}
       </Stack>
       <Toast notice={notice} animations={animationsEnabled} onClose={() => setNotice(null)} />
     </Box>

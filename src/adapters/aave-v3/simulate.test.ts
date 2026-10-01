@@ -149,6 +149,28 @@ describe('Aave V3 simulate', () => {
     const usdc = result.assets.find((asset) => asset.symbol === 'USDC')
     expect(Number(weth?.marketSizeUsd)).toBeCloseTo(20000, 2)
     expect(Number(usdc?.marketSizeUsd)).toBeCloseTo(50000, 2)
+    expect(Number(weth?.totalSupplied)).toBeCloseTo(10, 6)
+    expect(Number(weth?.totalBorrowed)).toBeCloseTo(0, 6)
+    expect(Number(weth?.totalBorrowedUsd)).toBeCloseTo(0, 2)
+  })
+
+  it('reports total borrowed in tokens and USD', () => {
+    const snapshot = ethUsdcSnapshot(true)
+    snapshot.reserves[0].availableLiquidity = '10000000000000000000'
+    snapshot.reserves[0].totalScaledVariableDebt = '2000000000000000000'
+    snapshot.reserves[1].availableLiquidity = '50000000000'
+    snapshot.reserves[1].totalScaledVariableDebt = '10000000000'
+    const result = evaluateAave(snapshot, emptyEdits())
+    const weth = result.assets.find((asset) => asset.symbol === 'WETH')
+    const usdc = result.assets.find((asset) => asset.symbol === 'USDC')
+    expect(Number(weth?.totalSupplied)).toBeCloseTo(12, 6)
+    expect(Number(weth?.totalBorrowed)).toBeCloseTo(2, 6)
+    expect(Number(weth?.marketSizeUsd)).toBeCloseTo(24000, 2)
+    expect(Number(weth?.totalBorrowedUsd)).toBeCloseTo(4000, 2)
+    expect(Number(usdc?.totalSupplied)).toBeCloseTo(60000, 2)
+    expect(Number(usdc?.totalBorrowed)).toBeCloseTo(10000, 2)
+    expect(Number(usdc?.marketSizeUsd)).toBeCloseTo(60000, 2)
+    expect(Number(usdc?.totalBorrowedUsd)).toBeCloseTo(10000, 2)
   })
 
   it('compounds reserve rates into supply and borrow APY', () => {

@@ -12,15 +12,19 @@ export function marketSlug(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-export function marketPath(protocolId: string, marketName: string): string {
+export type AppView = 'calculator' | 'markets'
+
+export function marketPath(protocolId: string, marketName: string, view: AppView = 'calculator'): string {
   const protocol = protocolPaths.find((entry) => entry.id === protocolId)
   const prefix = protocol?.path ?? protocolId
-  return `/${prefix}/${marketSlug(marketName)}`
+  const base = `/${prefix}/${marketSlug(marketName)}`
+  return view === 'markets' ? `${base}/markets` : base
 }
 
 export type RouteMatch = {
   protocolId: string
   marketId: string
+  view: AppView
   canonical: string
 }
 
@@ -59,27 +63,30 @@ export function resolveRoute(pathname: string, markets: Market[]): RouteMatch {
   if (!matched) return fallback
 
   const protocolMarkets = markets.filter((market) => market.protocolId === matched.protocolId)
-  const slug = matched.rest.join('/')
+  const [slug, viewSegment, ...extra] = matched.rest
   const market = slug
     ? protocolMarkets.find((entry) => marketSlug(entry.name) === slug)
     : protocolMarkets[0]
   if (!market) return fallback
 
+  const view: AppView = extra.length === 0 && viewSegment === 'markets' ? 'markets' : 'calculator'
   return {
     protocolId: market.protocolId,
     marketId: market.id,
-    canonical: marketPath(market.protocolId, market.name),
+    view,
+    canonical: marketPath(market.protocolId, market.name, view),
   }
 }
 
 function defaultRoute(markets: Market[]): RouteMatch {
   const market = markets.find((entry) => entry.protocolId === 'aave-v3') ?? markets[0]
   if (!market) {
-    return { protocolId: 'aave-v3', marketId: '', canonical: '/aave/v3' }
+    return { protocolId: 'aave-v3', marketId: '', view: 'calculator', canonical: '/aave/v3' }
   }
   return {
     protocolId: market.protocolId,
     marketId: market.id,
+    view: 'calculator',
     canonical: marketPath(market.protocolId, market.name),
   }
 }

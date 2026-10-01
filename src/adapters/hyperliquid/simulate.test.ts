@@ -8,9 +8,9 @@ function snapshot(): HyperliquidSnapshot {
     kind: 'hyperliquid',
     accountMode: null,
     reserves: [
-      { tokenIndex: 0, symbol: 'USDC', oraclePx: '1', ltv: '0', supplyYearlyRate: '0.01', borrowYearlyRate: '0.05' },
-      { tokenIndex: 150, symbol: 'HYPE', oraclePx: '91.78', ltv: '0.65', supplyYearlyRate: '0.02', borrowYearlyRate: '0.04' },
-      { tokenIndex: 197, symbol: 'UBTC', oraclePx: '80905', ltv: '0.5', supplyYearlyRate: '0', borrowYearlyRate: '0.03' },
+      { tokenIndex: 0, symbol: 'USDC', oraclePx: '1', ltv: '0', totalSupplied: '500000000', totalBorrowed: '300000000', supplyYearlyRate: '0.01', borrowYearlyRate: '0.05' },
+      { tokenIndex: 150, symbol: 'HYPE', oraclePx: '91.78', ltv: '0.65', totalSupplied: '1000000', totalBorrowed: '100000', supplyYearlyRate: '0.02', borrowYearlyRate: '0.04' },
+      { tokenIndex: 197, symbol: 'UBTC', oraclePx: '80905', ltv: '0.5', totalSupplied: '10', totalBorrowed: '1', supplyYearlyRate: '0', borrowYearlyRate: '0.03' },
     ],
     balances: [
       { tokenIndex: 150, supply: '1000', borrow: '0' },
@@ -110,6 +110,23 @@ describe('Hyperliquid simulate', () => {
     expect(hype?.supplyApy).toBe('0.02')
     expect(hype?.borrowApy).toBe('0.04')
     expect(usdc?.borrowApy).toBe('0.05')
+  })
+
+  it('reports market supply and borrow totals at the oracle price', () => {
+    const result = evaluateHyperliquid(snapshot(), emptyEdits())
+    const hype = result.assets.find((asset) => asset.symbol === 'HYPE')
+    expect(hype?.totalSupplied).toBe('1000000')
+    expect(hype?.totalBorrowed).toBe('100000')
+    expect(Number(hype?.marketSizeUsd)).toBeCloseTo(1000000 * 91.78, 2)
+    expect(Number(hype?.totalBorrowedUsd)).toBeCloseTo(100000 * 91.78, 2)
+
+    const repriced = evaluateHyperliquid(snapshot(), {
+      ...emptyEdits(),
+      priceUsdByAsset: { '150': '10' },
+    })
+    const edited = repriced.assets.find((asset) => asset.symbol === 'HYPE')
+    expect(edited?.priceUsd).toBe('10')
+    expect(Number(edited?.marketSizeUsd)).toBeCloseTo(1000000 * 91.78, 2)
   })
 
   it('returns no health factor when nothing is borrowed', () => {

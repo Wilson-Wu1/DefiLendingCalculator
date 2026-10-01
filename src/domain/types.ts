@@ -12,8 +12,14 @@ export type AssetState = {
   supplied: string
   borrowed: string
   priceUsd: string
+  /** Total supplied, in token units. Null when the protocol does not report it. */
+  totalSupplied: string | null
+  /** Total borrowed, in token units. Null when the protocol does not report it. */
+  totalBorrowed: string | null
   /** Total supplied in USD. Null when the protocol does not report market size. */
   marketSizeUsd: string | null
+  /** Total borrowed in USD. Null when the protocol does not report it. */
+  totalBorrowedUsd: string | null
   /** Supply interest as a fraction. Null when the protocol does not report it. */
   supplyApy: string | null
   /** Borrow interest as a fraction. Null when the protocol does not report it. */
@@ -165,6 +171,10 @@ export type HyperliquidReserve = {
   symbol: string
   oraclePx: string
   ltv: string
+  /** Total supplied, in token units. */
+  totalSupplied: string
+  /** Total borrowed, in token units. */
+  totalBorrowed: string
   /** Yearly supply rate as a fraction. */
   supplyYearlyRate: string
   /** Yearly borrow rate as a fraction. */

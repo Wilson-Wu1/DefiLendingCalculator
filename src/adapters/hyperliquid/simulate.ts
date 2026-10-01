@@ -24,6 +24,8 @@ export function evaluateHyperliquid(snapshot: HyperliquidSnapshot, edits: Edits)
     const price = edits.priceUsdByAsset[assetId] ?? reserve.oraclePx
     const supplied = edits.suppliedByAsset[assetId] ?? balance?.supply ?? '0'
     const borrowed = edits.borrowedByAsset[assetId] ?? balance?.borrow ?? '0'
+    const totalSupplied = tokenAmount(reserve.totalSupplied)
+    const totalBorrowed = tokenAmount(reserve.totalBorrowed)
     return {
       assetId,
       symbol: reserve.symbol,
@@ -31,7 +33,10 @@ export function evaluateHyperliquid(snapshot: HyperliquidSnapshot, edits: Edits)
       supplied: bn(supplied).toFixed(),
       borrowed: bn(borrowed).toFixed(),
       priceUsd: bn(price).toFixed(),
-      marketSizeUsd: null,
+      totalSupplied,
+      totalBorrowed,
+      marketSizeUsd: usdAmount(totalSupplied, reserve.oraclePx),
+      totalBorrowedUsd: usdAmount(totalBorrowed, reserve.oraclePx),
       supplyApy: yearlyRate(reserve.supplyYearlyRate),
       borrowApy: yearlyRate(reserve.borrowYearlyRate),
       liquidationThreshold: ltv.gt(0) || threshold.gt(0) ? threshold.toNumber() : null,
@@ -115,6 +120,20 @@ export function evaluateHyperliquid(snapshot: HyperliquidSnapshot, edits: Edits)
 function yearlyRate(value: string | undefined): string | null {
   if (value == null || value === '') return null
   return bn(value).toFixed()
+}
+
+function tokenAmount(value: string | undefined): string | null {
+  if (value == null || value === '') return null
+  const parsed = bn(value)
+  if (!parsed.isFinite()) return null
+  return parsed.toFixed()
+}
+
+function usdAmount(amount: string | null, price: string): string | null {
+  if (amount === null) return null
+  const value = bn(amount).multipliedBy(price)
+  if (!value.isFinite()) return null
+  return value.toFixed()
 }
 
 export function simulateHyperliquid(snapshot: HyperliquidSnapshot, edits: Edits): Result {
