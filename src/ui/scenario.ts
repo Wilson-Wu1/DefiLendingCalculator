@@ -1,4 +1,4 @@
-import { bn } from '../domain/numbers.ts'
+import { bn, formatRate } from '../domain/numbers.ts'
 import type { Edits, Position } from '../domain/types.ts'
 
 export type ScenarioRow = {
@@ -15,6 +15,8 @@ export type ScenarioRow = {
   marketSizeUsd: string | null
   supplyApy: string | null
   borrowApy: string | null
+  /** Collateral loan-to-value as a fraction. Null when this asset has no LTV. */
+  ltv: string | null
   usageAsCollateral: boolean
   frozen: boolean
   showThreshold: boolean
@@ -46,11 +48,37 @@ export function scenarioRows(position: Position, edits: Edits): ScenarioRow[] {
       marketSizeUsd: asset.marketSizeUsd,
       supplyApy: asset.supplyApy,
       borrowApy: asset.borrowApy,
+      ltv: asset.ltv,
       usageAsCollateral: asset.usageAsCollateral,
       frozen: asset.frozen,
       showThreshold: asset.liquidationThreshold !== null || thresholdEdit !== undefined,
     }
   })
+}
+
+export type SupplyRatePart = {
+  kind: 'apy' | 'ltv'
+  /** Formatted percent, such as "5.00%". */
+  value: string
+  label: 'APY' | 'LTV'
+}
+
+/**
+ * Supply-side rate caption. Collateral LTV is included only when the asset reports one,
+ * so an asset without LTV stays APY-only and does not leave an empty divider.
+ */
+export function rateExplanation(kind: 'apy' | 'ltv', side: 'supply' | 'borrow'): string {
+  if (kind === 'ltv') return 'Loan-to-value. How much can be borrowed against this asset.'
+  return side === 'borrow'
+    ? 'Annual percentage yield charged on the amount borrowed.'
+    : 'Annual percentage yield earned on the amount supplied.'
+}
+
+export function supplyRateParts(apy: string | null, ltv: string | null): SupplyRatePart[] {
+  const parts: SupplyRatePart[] = []
+  if (apy !== null) parts.push({ kind: 'apy', value: formatRate(apy), label: 'APY' })
+  if (ltv !== null) parts.push({ kind: 'ltv', value: formatRate(ltv), label: 'LTV' })
+  return parts
 }
 
 /** Largest market size first. Assets without a size stay in symbol order. */

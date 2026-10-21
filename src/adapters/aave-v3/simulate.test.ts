@@ -78,6 +78,15 @@ describe('Aave V3 simulate', () => {
     const result = evaluateAave(snapshot, emptyEdits())
     expect(Number(result.result.healthFactor)).toBeCloseTo(2.325, 3)
     expect(result.assets.find((asset) => asset.symbol === 'WETH')?.liquidationThreshold).toBeCloseTo(0.93, 4)
+    expect(result.assets.find((asset) => asset.symbol === 'WETH')?.ltv).toBe('0.8')
+  })
+
+  it('reports base collateral LTV and omits it when the reserve is not collateral', () => {
+    const enabled = evaluateAave(ethUsdcSnapshot(true), emptyEdits())
+    const disabled = evaluateAave(ethUsdcSnapshot(false), emptyEdits())
+    expect(enabled.assets.find((asset) => asset.symbol === 'WETH')?.ltv).toBe('0.8')
+    expect(disabled.assets.find((asset) => asset.symbol === 'WETH')?.ltv).toBe('0.8')
+    expect(enabled.assets.find((asset) => asset.symbol === 'USDC')?.ltv).toBeNull()
   })
 
   it('keeps a frozen reserve that the user still holds', () => {

@@ -14,7 +14,7 @@ import {
 } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { bn, formatRate, formatUsd } from '../domain/numbers.ts'
+import { bn, formatUsd } from '../domain/numbers.ts'
 import type { AssetState, Edits, Position } from '../domain/types.ts'
 import styles from './Board.module.css'
 import motion from './motion.module.css'
@@ -22,7 +22,7 @@ import { commaBreaks } from './commaBreaks.tsx'
 import { Presence } from './Presence.tsx'
 import { tokenIconUrl } from './icons.ts'
 import { Mark } from './Mark.tsx'
-import { compareByMarketSize, scenarioRows, type ScenarioRow } from './scenario.ts'
+import { compareByMarketSize, rateExplanation, scenarioRows, supplyRateParts, type ScenarioRow } from './scenario.ts'
 
 type Side = 'supply' | 'borrow'
 type AmountKey = 'suppliedByAsset' | 'borrowedByAsset'
@@ -441,11 +441,7 @@ function AssetRow({
             <Text fw={700} className={styles.cardSymbol}>
               {row.symbol}
             </Text>
-            {apy !== null ? (
-              <Text size="sm" c="dimmed">
-                {formatRate(apy)} APY
-              </Text>
-            ) : null}
+            <SupplyRates side={side} apy={apy} ltv={side === 'supply' ? row.ltv : null} />
             {badges ? <div className={styles.cardBadges}>{badges}</div> : null}
           </div>
         </div>
@@ -497,78 +493,100 @@ function AssetRow({
         </div>
         <div className={styles.priceBlock}>
           <div className={styles.amountField}>
-              <div className={styles.priceTitle}>
-                <Text size="sm" c="dimmed" className={styles.fieldLabel}>
-                  Price
+            <Text size="sm" c="dimmed" className={styles.fieldLabel}>
+              Price
+            </Text>
+            <TextInput
+              className={styles.priceField}
+              aria-label={`${row.symbol} price in dollars`}
+              inputMode="decimal"
+              value={draft ?? priceInputValue(row.priceUsd)}
+              onChange={(event) => onPriceInput(event.currentTarget.value)}
+              onBlur={() => setDraft(null)}
+              leftSection={
+                <Text size="sm" c="dimmed">
+                  $
                 </Text>
-                <Text size="sm" c={change >= 0 ? 'var(--hc-safe)' : 'var(--hc-danger)'} className={styles.priceChange}>
+              }
+              leftSectionWidth={22}
+            />
+          </div>
+          <div className={styles.priceActions}>
+            <Button
+              size="compact-xs"
+              variant="default"
+              disabled={!canNudge}
+              aria-label={`Decrease ${row.symbol} price by 5%`}
+              onClick={() => nudgePrice(0.95)}
+            >
+              −5%
+            </Button>
+            <Button
+              size="compact-xs"
+              variant="default"
+              disabled={!canNudge}
+              aria-label={`Increase ${row.symbol} price by 5%`}
+              onClick={() => nudgePrice(1.05)}
+            >
+              +5%
+            </Button>
+          </div>
+          <div className={styles.sliderControl}>
+            <Slider
+              min={0}
+              max={ceiling}
+              step={ceiling > 100 ? 0.01 : ceiling / 200}
+              value={Number.isFinite(current) ? Math.min(Math.max(current, 0), ceiling) : 0}
+              onChange={(value) => applyPrice(String(value))}
+              label={null}
+              showLabelOnHover={false}
+              thumbLabel={`${row.symbol} price`}
+              size="md"
+              thumbSize={18}
+            />
+            <div className={styles.sliderMeta}>
+              <Text size="sm" className={styles.sliderValue}>
+                <Text span c="dimmed">
+                  Price{' '}
+                </Text>
+                <Text span c={change >= 0 ? 'var(--hc-safe)' : 'var(--hc-danger)'} className={styles.priceChange}>
                   {change >= 0 ? '+' : ''}
                   {change.toFixed(2)}%
                 </Text>
-              </div>
-              <TextInput
-                className={styles.priceField}
-                aria-label={`${row.symbol} price in dollars`}
-                inputMode="decimal"
-                value={draft ?? priceInputValue(row.priceUsd)}
-                onChange={(event) => onPriceInput(event.currentTarget.value)}
-                onBlur={() => setDraft(null)}
-                leftSection={
-                  <Text size="sm" c="dimmed">
-                    $
-                  </Text>
-                }
-                leftSectionWidth={22}
-              />
+              </Text>
+              <Button
+                className={styles.sliderReset}
+                size="compact-xs"
+                variant="default"
+                disabled={bn(row.priceUsd).eq(bn(row.protocolPriceUsd))}
+                aria-label={`Reset ${row.symbol} price to the current price`}
+                onClick={() => applyPrice(row.protocolPriceUsd)}
+              >
+                Reset
+              </Button>
             </div>
-            <div className={styles.priceActions}>
-                <Button
-                  size="compact-xs"
-                  variant="default"
-                  disabled={!canNudge}
-                  aria-label={`Decrease ${row.symbol} price by 5%`}
-                  onClick={() => nudgePrice(0.95)}
-                >
-                  −5%
-                </Button>
-                <Button
-                  size="compact-xs"
-                  variant="default"
-                  disabled={!canNudge}
-                  aria-label={`Increase ${row.symbol} price by 5%`}
-                  onClick={() => nudgePrice(1.05)}
-                >
-                  +5%
-                </Button>
-                <Button
-                  size="compact-xs"
-                  variant="default"
-                  disabled={bn(row.priceUsd).eq(bn(row.protocolPriceUsd))}
-                  aria-label={`Reset ${row.symbol} price to the current price`}
-                  onClick={() => applyPrice(row.protocolPriceUsd)}
-                >
-                  Reset
-                </Button>
-            </div>
-          <Slider
-            min={0}
-            max={ceiling}
-            step={ceiling > 100 ? 0.01 : ceiling / 200}
-            value={Number.isFinite(current) ? Math.min(Math.max(current, 0), ceiling) : 0}
-            onChange={(value) => applyPrice(String(value))}
-            label={null}
-            showLabelOnHover={false}
-            thumbLabel={`${row.symbol} price`}
-            size="sm"
-          />
+          </div>
         </div>
         {side === 'supply' && row.showThreshold && row.liquidationThreshold !== null ? (
-          <div className={styles.priceBlock}>
-            <div className={styles.lineHead}>
-              <Text size="sm" c="dimmed" className={styles.thresholdLabel}>
+          <div className={styles.sliderControl}>
+            <Slider
+              min={0}
+              max={100}
+              step={0.1}
+              value={row.liquidationThreshold * 100}
+              onChange={(value) => onThreshold(row.assetId, String(value / 100))}
+              label={null}
+              showLabelOnHover={false}
+              thumbLabel={`${row.symbol} liquidation threshold`}
+              size="md"
+              thumbSize={18}
+            />
+            <div className={styles.sliderMeta}>
+              <Text size="sm" c="dimmed" className={styles.sliderValue}>
                 Liquidation threshold {(row.liquidationThreshold * 100).toFixed(2)}%
               </Text>
               <Button
+                className={styles.sliderReset}
                 size="compact-xs"
                 variant="default"
                 disabled={
@@ -585,17 +603,6 @@ function AssetRow({
                 Reset
               </Button>
             </div>
-            <Slider
-              min={0}
-              max={100}
-              step={0.1}
-              value={row.liquidationThreshold * 100}
-              onChange={(value) => onThreshold(row.assetId, String(value / 100))}
-              label={null}
-              showLabelOnHover={false}
-              thumbLabel={`${row.symbol} liquidation threshold`}
-              size="sm"
-            />
           </div>
         ) : null}
       </div>
@@ -617,6 +624,32 @@ function priceInputValue(price: string): string {
   const parsed = Number(price)
   if (!Number.isFinite(parsed)) return ''
   return parsed.toFixed(8).replace(/\.?0+$/, '')
+}
+
+function SupplyRates({
+  side,
+  apy,
+  ltv,
+}: {
+  side: Side
+  apy: string | null
+  ltv: string | null
+}) {
+  const parts = supplyRateParts(apy, ltv)
+  if (parts.length === 0) return null
+  return (
+    <Text size="sm" c="dimmed">
+      {parts.map((part, index) => (
+        <span key={part.kind}>
+          {index > 0 ? <span className={styles.rateDivider} aria-hidden="true" /> : null}
+          {part.value}{' '}
+          <Tooltip label={rateExplanation(part.kind, side)} multiline maw={260} withArrow position="bottom">
+            <span className={styles.term}>{part.label}</span>
+          </Tooltip>
+        </span>
+      ))}
+    </Text>
+  )
 }
 
 function CollateralBadge({ collateral, className }: { collateral: boolean; className?: string }) {

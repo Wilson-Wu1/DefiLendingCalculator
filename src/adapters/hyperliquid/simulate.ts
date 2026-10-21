@@ -100,7 +100,10 @@ export function evaluateHyperliquid(snapshot: HyperliquidSnapshot, edits: Edits)
       ? '1'
       : null
 
-  const publicAssets: AssetState[] = assets.map(({ ltv: _ltv, ...asset }) => asset)
+  const publicAssets: AssetState[] = assets.map(({ ltv, ...asset }) => ({
+    ...asset,
+    ltv: ltv.isFinite() && ltv.gt(0) ? ltv.toFixed() : null,
+  }))
 
   return {
     rawHealthFactor,

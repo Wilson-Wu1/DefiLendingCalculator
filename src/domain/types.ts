@@ -24,6 +24,11 @@ export type AssetState = {
   supplyApy: string | null
   /** Borrow interest as a fraction. Null when the protocol does not report it. */
   borrowApy: string | null
+  /**
+   * Collateral loan-to-value as a fraction from 0 to 1: how much can be borrowed
+   * against this asset. Null when it is not collateral or the protocol does not report it.
+   */
+  ltv: string | null
   /** Fraction from 0 to 1. Null when this asset has no liquidation threshold. */
   liquidationThreshold: number | null
   usageAsCollateral: boolean

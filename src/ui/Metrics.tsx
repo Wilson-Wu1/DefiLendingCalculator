@@ -1,4 +1,5 @@
 import { Alert, Badge, Group, Paper, SimpleGrid, Stack, Text } from '@mantine/core'
+import type { CSSProperties } from 'react'
 import { bn, formatCompactNumber, formatRate, formatUsd } from '../domain/numbers.ts'
 import type { Edits, Position, Result } from '../domain/types.ts'
 import { commaBreaks } from './commaBreaks.tsx'
@@ -19,6 +20,13 @@ const healthColors = {
   'hf-danger': 'var(--hc-danger)',
 }
 
+const liquidatedTone = {
+  '--alert-bg': 'var(--hc-liquidated-bg)',
+  '--alert-color': 'var(--hc-liquidated)',
+  '--badge-bg': 'var(--hc-liquidated-bg)',
+  '--badge-color': 'var(--hc-liquidated)',
+} as CSSProperties
+
 export function Metrics({ position, result, edits }: MetricsProps) {
   const health = result?.healthFactor ?? null
   const unit = result?.healthUnit ?? position?.healthUnit ?? 'ratio'
@@ -38,7 +46,14 @@ export function Metrics({ position, result, edits }: MetricsProps) {
   return (
     <Stack gap={0}>
       <Presence present={liquidated} space="var(--mantine-spacing-md)">
-        <Alert color="red" variant="light" role="alert" title={liquidatedLabel}>
+        <Alert
+          color="red"
+          variant="light"
+          role="alert"
+          title={liquidatedLabel}
+          style={liquidatedTone}
+          styles={{ message: { color: 'var(--hc-liquidated)' } }}
+        >
           {portfolioMargin
             ? 'Collateral is at the borrow threshold. Account liquidation also depends on perpetual margin, which this calculator does not include.'
             : 'This position would be liquidated at these prices.'}
@@ -105,7 +120,7 @@ function Stat({
           {label}
         </Text>
         {badge ? (
-          <Badge className={motion.badgeIn} color="red" variant="light" size="sm">
+          <Badge className={motion.badgeIn} color="red" variant="light" size="sm" style={liquidatedTone}>
             {badge}
           </Badge>
         ) : null}

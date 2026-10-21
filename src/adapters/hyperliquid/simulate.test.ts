@@ -109,7 +109,9 @@ describe('Hyperliquid simulate', () => {
     const usdc = result.assets.find((asset) => asset.symbol === 'USDC')
     expect(hype?.supplyApy).toBe('0.02')
     expect(hype?.borrowApy).toBe('0.04')
+    expect(hype?.ltv).toBe('0.65')
     expect(usdc?.borrowApy).toBe('0.05')
+    expect(usdc?.ltv).toBeNull()
   })
 
   it('reports market supply and borrow totals at the oracle price', () => {

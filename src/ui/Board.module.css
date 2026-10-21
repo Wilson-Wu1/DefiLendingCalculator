@@ -221,19 +221,12 @@
 }
 
 .columnTotal,
-.thresholdLabel,
+.sliderValue,
 .priceChange {
   min-width: 0;
   overflow-wrap: break-word;
   text-align: right;
   font-variant-numeric: tabular-nums;
-}
-
-.priceTitle {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
 }
 
 .priceChange {
@@ -303,11 +296,48 @@
   gap: 6px;
 }
 
-.thresholdLabel {
+.sliderControl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sliderMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  min-width: 0;
+}
+
+.sliderValue {
+  flex: 1 1 auto;
   text-align: left;
+}
+
+.sliderReset {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 :global(html[data-animations='off']) .available:hover:not(:disabled):not([aria-disabled='true']),
 :global(html[data-animations='off']) .available:active:not(:disabled):not([aria-disabled='true']) {
   transform: none;
+}
+
+.term {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
+}
+
+.rateDivider {
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  margin-inline: 0.45em;
+  background: currentColor;
+  opacity: 0.55;
+  vertical-align: -0.08em;
 }

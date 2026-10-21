@@ -95,6 +95,14 @@ export function simulateAave(snapshot: AaveSnapshot, edits: Edits): Result {
   return evaluateAave(snapshot, edits).result
 }
 
+/** Base collateral LTV as a fraction. Zero means the reserve is not collateral. */
+function collateralLtv(fraction: string, enabled: boolean): string | null {
+  if (!enabled) return null
+  const parsed = bn(fraction)
+  if (!parsed.isFinite() || !parsed.gt(0)) return null
+  return parsed.toFixed()
+}
+
 function includeReserve(reserve: AaveReserve, userReserves: AaveUserReserve[]): boolean {
   const user = userReserves.find(
     (entry) => entry.underlyingAsset.toLowerCase() === reserve.underlyingAsset.toLowerCase(),
@@ -226,6 +234,7 @@ function toAsset(
     totalBorrowedUsd: reserve.totalDebtUSD,
     supplyApy: reserve.supplyAPY,
     borrowApy: reserve.variableBorrowAPY,
+    ltv: collateralLtv(reserve.formattedBaseLTVasCollateral, reserve.usageAsCollateralEnabled),
     liquidationThreshold: threshold > 0 ? threshold : null,
     usageAsCollateral: user
       ? user.usageAsCollateralEnabledOnUser

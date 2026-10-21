@@ -15,9 +15,9 @@ export function readAnimationsEnabled(): boolean {
     if (stored === 'on') return true
     if (stored === 'off') return false
   } catch {
-    // Storage can be blocked. Fall through to the system preference.
+    // Storage can be blocked. Fall through to the default.
   }
-  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  return true
 }
 
 export function applyStoredAnimations() {
