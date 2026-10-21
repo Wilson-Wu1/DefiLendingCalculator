@@ -1,5 +1,5 @@
 import { Alert, Badge, Group, Paper, SimpleGrid, Stack, Text } from '@mantine/core'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { bn, formatCompactNumber, formatRate, formatUsd } from '../domain/numbers.ts'
 import type { Edits, Position, Result } from '../domain/types.ts'
 import { commaBreaks } from './commaBreaks.tsx'
@@ -44,7 +44,7 @@ export function Metrics({ position, result, edits }: MetricsProps) {
   const liquidatedLabel = portfolioMargin ? 'At threshold' : 'Liquidated'
 
   return (
-    <Stack gap={0}>
+    <Stack gap={0} mb="xl">
       <Presence present={liquidated} space="var(--mantine-spacing-md)">
         <Alert
           color="red"
@@ -87,7 +87,7 @@ export function Metrics({ position, result, edits }: MetricsProps) {
           delay="270ms"
           label="Net yield"
           value={yieldResult.apy === null ? '—' : formatRate(yieldResult.apy)}
-          secondary={yearly === null ? null : `${signedUsd(yearly.toFixed())} / year`}
+          secondary={yearly === null ? null : <YieldPeriods yearly={yearly} />}
           note="Interest only. Does not include reward incentives."
           color={yearly === null || yearly.isZero() ? undefined : yearly.gt(0) ? 'var(--hc-safe)' : 'var(--hc-danger)'}
         />
@@ -108,13 +108,19 @@ function Stat({
   delay: string
   label: string
   value: string
-  secondary?: string | null
+  secondary?: ReactNode
   note: string
   color?: string
   badge?: string | null
 }) {
   return (
-    <Paper className={motion.enter} p="md" radius="md" withBorder style={{ minWidth: 0, animationDelay: delay }}>
+    <Paper
+      className={`${motion.enter} cardFace`}
+      p="md"
+      radius="md"
+      withBorder
+      style={{ minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', animationDelay: delay }}
+    >
       <Group justify="space-between" align="center" wrap="nowrap" gap="xs">
         <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: '0.04em' }}>
           {label}
@@ -148,7 +154,7 @@ function Stat({
           {secondary}
         </Text>
       ) : null}
-      <Text size="sm" c="dimmed" mt={8}>
+      <Text size="sm" c="dimmed" mt="auto" pt={8}>
         {note}
       </Text>
     </Paper>
@@ -172,6 +178,24 @@ export function healthClass(result: Result | null): keyof typeof healthColors {
 
 export function healthColor(result: Result | null): string {
   return healthColors[healthClass(result)]
+}
+
+function YieldPeriods({ yearly }: { yearly: ReturnType<typeof bn> }) {
+  const periods = [
+    ['Year', yearly],
+    ['Month', yearly.dividedBy(12)],
+    ['Day', yearly.dividedBy(365)],
+  ] as const
+  return (
+    <span style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', columnGap: 8 }}>
+      {periods.map(([label, amount]) => (
+        <span key={label} style={{ minWidth: 0, lineHeight: 1.25 }}>
+          <span style={{ display: 'block' }}>{commaBreaks(signedUsd(amount.toFixed()))}</span>
+          <span style={{ display: 'block', fontWeight: 500, color: 'var(--mantine-color-text)' }}>{label}</span>
+        </span>
+      ))}
+    </span>
+  )
 }
 
 function signedUsd(value: string): string {

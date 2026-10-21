@@ -59,6 +59,12 @@ describe('market paths', () => {
   it('falls back to Aave Ethereum for an unknown path', () => {
     expect(resolveRoute('/', markets).canonical).toBe('/aave/v3/ethereum')
     expect(resolveRoute('/aave/v3/missing', markets).canonical).toBe('/aave/v3/ethereum')
+    expect(
+      resolveRoute('/aave/v3/optimism', [
+        ...markets,
+        { id: 'aave-v3-optimism', protocolId: 'aave-v3', name: 'Optimism', chainId: 10, disabled: true },
+      ]).canonical,
+    ).toBe('/aave/v3/ethereum')
   })
 
   it('drops an unknown view back to the calculator for that market', () => {
